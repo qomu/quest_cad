@@ -1,28 +1,36 @@
 import vk
-# import subprocess
+import links
+import time
 
-oauth_link=("https://oauth.vk.com/authorize?client_id=6223008"
-"&display=page"
-"&redirect_uri=https://oauth.vk.com/blank.html"
-"&scope=messages,wall,notifications,offline"
-"&response_type=token"
-"&v=5.68")
-
-_my_link=("https://oauth.vk.com/blank.html"
-"#access_token=f1c678c565258d7d9087e2e421268c1994336196c9801d99da3ded986757f9e69096a1bb86bd9c446a3e5"
-"&expires_in=0"
-"&user_id=262386765")
-
-error_example=("https://oauth.vk.com/blank.html"
-"#error=access_denied"
-"&error_description=The+user+or+authorization+server+denied+the+request.")
-
-print(oauth_link)
-
-
-# Что мы делаем:
-# 1) Открываем в браузере ссылку и авторизуемся
-# 2) Получаем токен авторизации и сохраняем его в приложении
-# 3) Авторизуемся в vk с помощью токена
-# 4) ???
-# 5) Что-нибудь поделаем
+session = vk.Session(access_token=links.token)
+api=vk.API(session)
+with open('main.py', 'r') as text_file:
+    s=text_file.read()
+count = api.wall.get(owner_id=-139207940)[0]
+done = 0
+quest=[]
+portion_len=0
+while done<count-1:
+    time.sleep(0.5)
+    portion = api.wall.get(owner_id=-139207940, count=100, offset=done)[1:]
+    for i in range(1, 101):
+        try:
+            if '#notequest1' in portion[i]['text']:
+                quest.append(portion[i]['text'])
+                # print('post appended')
+            portion_len+=1
+            # print('line checked, {} messages so far'.format(portion_len))
+        except UnicodeEncodeError:
+            pass
+        except IndexError:
+            break
+    done+=portion_len
+    portion_len=0
+with open('log.html','w') as log:
+    quest.reverse()
+    log.write('<html>\n\t<head></head>\n\t<body>\n')
+    for item in quest:
+        log.write('-'*100+'<br>')
+        log.write(item)
+        log.write('<br><br>')
+    log.write('\n\t</body>\n</html>')
